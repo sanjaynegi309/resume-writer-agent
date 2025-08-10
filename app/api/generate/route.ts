@@ -23,9 +23,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ text });
   } catch (error) {
     console.error(error);
-let errorMessage = "An unknown error occurred";
+    let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    return NextResponse.json({ error: `Failed to generate content: ${errorMessage}` }, { status: 500 });  }
+    return NextResponse.json({ error: `Failed to generate content: ${errorMessage}` }, { status: 500 });
+  }
 }
