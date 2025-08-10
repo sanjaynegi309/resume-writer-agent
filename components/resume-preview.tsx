@@ -6,7 +6,6 @@ import { Button } from "./ui/button";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
-import htmlToDocx from "html-to-docx";
 
 export function ResumePreview() {
   const resumeRef = useRef<HTMLDivElement>(null);
@@ -25,16 +24,26 @@ export function ResumePreview() {
 
   const exportToDocx = async () => {
     if (!generatedResume) return;
-    const fileBuffer = await htmlToDocx(generatedResume, undefined, {
-      font: "Calibri",
-      fontSize: "12",
-      table: {
-        row: {
-          cantSplit: true,
+
+    try {
+      const response = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      },
-    });
-    saveAs(fileBuffer as Blob, "resume.docx");
+        body: JSON.stringify({ htmlContent: generatedResume }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      saveAs(blob, "resume.docx");
+    } catch (error) {
+      console.error("Failed to export to DOCX:", error);
+      alert("Failed to export to DOCX. Please try again.");
+    }
   };
 
   if (!generatedResume) {

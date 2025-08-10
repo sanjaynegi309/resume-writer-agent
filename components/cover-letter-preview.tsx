@@ -6,7 +6,6 @@ import { Button } from "./ui/button";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
-import htmlToDocx from "html-to-docx";
 
 export function CoverLetterPreview() {
   const coverLetterRef = useRef<HTMLDivElement>(null);
@@ -25,11 +24,26 @@ export function CoverLetterPreview() {
 
   const exportToDocx = async () => {
     if (!generatedCoverLetter) return;
-    const fileBuffer = await htmlToDocx(generatedCoverLetter, undefined, {
-      font: "Calibri",
-      fontSize: "12",
-    });
-    saveAs(fileBuffer as Blob, "cover-letter.docx");
+
+    try {
+      const response = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ htmlContent: generatedCoverLetter }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      saveAs(blob, "cover-letter.docx");
+    } catch (error) {
+      console.error("Failed to export to DOCX:", error);
+      alert("Failed to export to DOCX. Please try again.");
+    }
   };
 
   if (!generatedCoverLetter) {
